@@ -202,7 +202,7 @@ class AuthManager {
         try {
             // 데이터베이스에서 사용자 프로필 정보 가져오기
             const { data, error } = await supabase
-                .from('users')
+                .from('user_profiles')
                 .select('*')
                 .eq('id', user.id)
                 .single();
@@ -225,7 +225,7 @@ class AuthManager {
     async createUserProfile(user) {
         try {
             const { error } = await supabase
-                .from('users')
+                .from('user_profiles')
                 .insert({
                     id: user.id,
                     email: user.email,

@@ -387,7 +387,7 @@ const SupabaseUtils = {
     async updateUserProfile(userId, profileData) {
         try {
             const { data, error } = await supabase
-                .from('users')
+                .from('user_profiles')
                 .upsert({ id: userId, ...profileData })
                 .select();
             

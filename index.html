@@ -511,10 +511,22 @@
     <!-- Toast Notifications -->
     <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-    <!-- Scripts -->
-    <script src="js/supabase-config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/main.js"></script>
+    <!-- Scripts with auto cache busting -->
+    <script>
+        // 자동 캐시 버스팅: 10초마다 타임스탬프 갱신
+        const timestamp = Math.floor(Date.now() / 10000) * 10000; // 10초 단위로 반올림
+        const scripts = [
+            'js/supabase-config.js',
+            'js/auth.js', 
+            'js/chat.js',
+            'js/main.js'
+        ];
+        
+        scripts.forEach(src => {
+            const script = document.createElement('script');
+            script.src = `${src}?v=${timestamp}`;
+            document.head.appendChild(script);
+        });
+    </script>
 </body>
 </html>
