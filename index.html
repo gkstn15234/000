@@ -151,30 +151,11 @@
                             <i class="fas fa-comments mr-2 text-primary"></i>채널
                         </h3>
                         <div class="space-y-2">
-                            <button class="channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors active channel-active" data-channel="general">
+                            <button class="channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors active channel-active" data-channel="general" onclick="devConnectApp.switchChannel('general', '일반')">
                                 <i class="fas fa-hashtag text-gray-500 mr-2"></i>일반
                                 <span class="float-right text-sm text-gray-500">2</span>
                             </button>
-                            <button class="channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-channel="javascript">
-                                <i class="fab fa-js-square text-yellow-500 mr-2"></i>JavaScript
-                                <span class="float-right text-sm text-gray-500">2</span>
-                            </button>
-                            <button class="channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-channel="python">
-                                <i class="fab fa-python text-blue-500 mr-2"></i>Python
-                                <span class="float-right text-sm text-gray-500">1</span>
-                            </button>
-                            <button class="channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-channel="react">
-                                <i class="fab fa-react text-blue-400 mr-2"></i>React
-                                <span class="float-right text-sm text-gray-500">2</span>
-                            </button>
-                            <button class="channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-channel="nodejs">
-                                <i class="fab fa-node-js text-green-500 mr-2"></i>Node.js
-                                <span class="float-right text-sm text-gray-500">0</span>
-                            </button>
-                            <button class="channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" data-channel="ai">
-                                <i class="fas fa-robot text-purple-500 mr-2"></i>AI/ML
-                                <span class="float-right text-sm text-gray-500">1</span>
-                            </button>
+                            <!-- 동적 채널들이 여기에 추가됩니다 -->
                         </div>
                     </div>
                     
@@ -194,6 +175,15 @@
                             </div>
                             <p class="text-xs text-gray-500">새로운 주제의 채널을 만들어보세요!</p>
                         </div>
+                    </div>
+                    
+                    <!-- 광고 배너 -->
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white text-center mt-4">
+                        <h4 class="font-semibold text-sm mb-2">💡 개발자를 위한 특별 혜택</h4>
+                        <p class="text-xs mb-3">프리미엄 개발 도구 50% 할인!</p>
+                        <button class="bg-white text-blue-600 px-3 py-1 rounded-md text-xs font-medium hover:bg-gray-100 transition-colors">
+                            자세히 보기
+                        </button>
                     </div>
                 </div>
 
@@ -227,20 +217,26 @@
                     </div>
 
                     <!-- Quick Actions -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <button id="videoCallBtn" class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
                             <i class="fas fa-video text-3xl text-secondary mb-3"></i>
                             <div class="font-semibold">화상 회의</div>
-                            <div class="text-sm text-gray-600">회의 링크 설정</div>
+                            <div class="text-sm text-gray-600">Zoom 미팅 생성</div>
                         </button>
                         
-                        <button class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
+                        <button id="mentoringBtn" class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
                             <i class="fas fa-users text-3xl text-accent mb-3"></i>
                             <div class="font-semibold">멘토링</div>
-                            <div class="text-sm text-gray-600">멘토 찾기</div>
+                            <div class="text-sm text-gray-600">질문하고 도움받기</div>
                         </button>
                         
-                        <button class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
+                        <button id="storeBtn" class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
+                            <i class="fab fa-github text-3xl text-gray-700 mb-3"></i>
+                            <div class="font-semibold">코드 스토어</div>
+                            <div class="text-sm text-gray-600">GitHub 코드 판매</div>
+                        </button>
+                        
+                        <button id="questionBtn" class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
                             <i class="fas fa-question-circle text-3xl text-purple-500 mb-3"></i>
                             <div class="font-semibold">질문하기</div>
                             <div class="text-sm text-gray-600">개발 질문 올리기</div>
@@ -354,12 +350,12 @@
         </div>
     </div>
 
-    <!-- Video Call URL Modal -->
+    <!-- Video Call Modal -->
     <div id="videoCallModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
             <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">화상회의 설정</h2>
-                <p class="text-gray-600 mt-2">회의 링크를 설정하세요</p>
+                <h2 class="text-2xl font-bold text-gray-900">Zoom 화상회의</h2>
+                <p class="text-gray-600 mt-2">Zoom 미팅을 생성하고 공유하세요</p>
             </div>
             
             <div class="space-y-4">
@@ -370,19 +366,144 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">회의 URL</label>
-                    <input type="url" id="meetingUrl" placeholder="https://zoom.us/j/..." 
+                    <label class="block text-sm font-medium text-gray-700 mb-1">회의 유형</label>
+                    <select id="meetingType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="instant">즉시 미팅</option>
+                        <option value="scheduled">예약 미팅</option>
+                    </select>
+                </div>
+                
+                <div id="scheduledOptions" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">예약 시간</label>
+                    <input type="datetime-local" id="meetingTime" 
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
                 
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="waitingRoom" checked class="rounded">
+                    <label for="waitingRoom" class="text-sm text-gray-700">대기실 사용</label>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="recordMeeting" class="rounded">
+                    <label for="recordMeeting" class="text-sm text-gray-700">회의 녹화</label>
+                </div>
+                
                 <div class="flex space-x-2">
-                    <button id="saveMeetingBtn" class="flex-1 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
-                        저장
+                    <button id="createZoomMeetingBtn" class="flex-1 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-video mr-2"></i>미팅 생성
                     </button>
                     <button id="closeMeetingModal" class="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                         취소
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mentoring Modal -->
+    <div id="mentoringModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">멘토링 질문</h2>
+                <p class="text-gray-600 mt-2">다른 개발자들에게 질문하세요</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">질문 제목</label>
+                    <input type="text" id="questionTitle" placeholder="예: React Hooks 사용법 문의" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">기술 스택</label>
+                    <select id="techStack" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="">선택해주세요</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="react">React</option>
+                        <option value="nodejs">Node.js</option>
+                        <option value="ai">AI/ML</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">질문 내용</label>
+                    <textarea id="questionContent" rows="4" placeholder="자세한 질문 내용을 입력해주세요..." 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                </div>
+                
+                <div class="flex space-x-2">
+                    <button id="submitQuestionBtn" class="flex-1 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        질문 올리기
+                    </button>
+                    <button id="closeMentoringModal" class="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        취소
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Store Modal -->
+    <div id="storeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">코드 스토어</h2>
+                <p class="text-gray-600 mt-2">GitHub 코드를 판매하거나 구매하세요</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-4">코드 판매하기</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="repoUrl" placeholder="GitHub 저장소 URL" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <input type="text" id="codeTitle" placeholder="코드 제목" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <input type="number" id="codePrice" placeholder="가격 (원)" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <textarea id="codeDescription" rows="3" placeholder="코드 설명..." 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"></textarea>
+                        <button id="sellCodeBtn" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                            등록하기
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-4">인기 코드</h3>
+                    <div class="space-y-3">
+                        <div class="border rounded p-3">
+                            <h4 class="font-medium text-sm">React 커머스 템플릿</h4>
+                            <p class="text-xs text-gray-600 mt-1">완전한 온라인 쇼핑몰 소스코드</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm font-semibold text-primary">₩50,000</span>
+                                <button class="px-3 py-1 bg-secondary text-white text-xs rounded hover:bg-green-600">
+                                    구매
+                                </button>
+                            </div>
+                        </div>
+                        <div class="border rounded p-3">
+                            <h4 class="font-medium text-sm">Python 데이터 분석 도구</h4>
+                            <p class="text-xs text-gray-600 mt-1">머신러닝 기반 분석 스크립트</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm font-semibold text-primary">₩30,000</span>
+                                <button class="px-3 py-1 bg-secondary text-white text-xs rounded hover:bg-green-600">
+                                    구매
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <button id="closeStoreModal" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    닫기
+                </button>
             </div>
         </div>
     </div>

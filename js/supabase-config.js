@@ -28,6 +28,20 @@ function createMockSupabase() {
         { id: '3', email: 'park.junior@example.com', user_metadata: { name: '박초보' } }
     ];
     
+    // 채널 데이터 (동적 채널 관리를 위해)
+    const mockChannels = [
+        {
+            id: 'general',
+            name: '일반',
+            description: '일반적인 대화를 나누는 공간',
+            icon: 'fas fa-hashtag',
+            color: 'text-gray-500',
+            created_by: '1',
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            is_default: true
+        }
+    ];
+
     const mockMessages = {
         general: [
             {
@@ -47,68 +61,13 @@ function createMockSupabase() {
                 user: { name: '관리자', avatar_url: null }
             }
         ],
-        javascript: [
-            {
-                id: '3',
-                content: '```javascript\nconsole.log("Hello, World!");\nconst greeting = "안녕하세요!";\nconsole.log(greeting);\n```\n첫 번째 JavaScript 코드 공유입니다!',
-                user_id: '2',
-                channel: 'javascript',
-                created_at: new Date(Date.now() - 1800000).toISOString(),
-                user: { name: '김개발', avatar_url: null }
-            },
-            {
-                id: '4',
-                content: 'ES6의 화살표 함수에 대해 질문이 있어요. 언제 사용하는 게 좋을까요?',
-                user_id: '3',
-                channel: 'javascript',
-                created_at: new Date(Date.now() - 900000).toISOString(),
-                user: { name: '박초보', avatar_url: null }
-            }
-        ],
-        python: [
-            {
-                id: '5',
-                content: '```python\ndef hello_world():\n    print("안녕하세요, Python!")\n    return "DevConnect"\n\nresult = hello_world()\nprint(f"결과: {result}")\n```\nPython 기초 예제입니다!',
-                user_id: '2',
-                channel: 'python',
-                created_at: new Date(Date.now() - 2400000).toISOString(),
-                user: { name: '김개발', avatar_url: null }
-            }
-        ],
-        react: [
-            {
-                id: '6',
-                content: 'React Hooks에 대해 질문이 있어요. useEffect 사용법을 알려주세요!',
-                user_id: '3',
-                channel: 'react',
-                created_at: new Date(Date.now() - 1200000).toISOString(),
-                user: { name: '박초보', avatar_url: null }
-            },
-            {
-                id: '7',
-                content: '```jsx\nimport React, { useState, useEffect } from "react";\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n\n  useEffect(() => {\n    document.title = `카운트: ${count}`;\n  }, [count]);\n\n  return (\n    <button onClick={() => setCount(count + 1)}>\n      클릭 횟수: {count}\n    </button>\n  );\n}\n```\nuseEffect 사용 예제입니다!',
-                user_id: '2',
-                channel: 'react',
-                created_at: new Date(Date.now() - 600000).toISOString(),
-                user: { name: '김개발', avatar_url: null }
-            }
-        ],
-        nodejs: [],
-        ai: [
-            {
-                id: '8',
-                content: 'ChatGPT API를 활용한 프로젝트를 진행 중인데, rate limit 처리는 어떻게 하시나요?',
-                user_id: '3',
-                channel: 'ai',
-                created_at: new Date(Date.now() - 3600000).toISOString(),
-                user: { name: '박초보', avatar_url: null }
-            }
-        ]
+        // 다른 채널들은 동적으로 생성됨
     };
     
     let currentUser = null;
     const authListeners = [];
     const messageListeners = [];
+    const channelListeners = [];
     
     return {
         auth: {
@@ -237,6 +196,35 @@ function createMockSupabase() {
             
             insert: async (data) => {
                 console.log(`Mock insert into ${table}:`, data);
+                
+                if (table === 'channels') {
+                    const newChannel = {
+                        id: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+                        name: data.name,
+                        description: data.description || '',
+                        icon: data.icon || 'fas fa-hashtag',
+                        color: data.color || 'text-primary',
+                        created_by: currentUser?.id || '1',
+                        created_at: new Date().toISOString(),
+                        is_default: false
+                    };
+                    
+                    mockChannels.push(newChannel);
+                    mockMessages[newChannel.id] = [];
+                    
+                    // 실시간 리스너들에게 알림
+                    setTimeout(() => {
+                        channelListeners.forEach(listener => {
+                            listener.callback({
+                                eventType: 'INSERT',
+                                new: newChannel
+                            });
+                        });
+                    }, 100);
+                    
+                    return { data: [newChannel], error: null };
+                }
+                
                 if (table === 'messages') {
                     const newMessage = {
                         ...data,
@@ -278,14 +266,22 @@ function createMockSupabase() {
                 on: function(event, filter, callback) {
                     console.log(`Mock channel subscription: ${name}, ${event}`, filter);
                     
-                    if (event === 'postgres_changes' && filter.table === 'messages') {
-                        const channelName = filter.filter ? filter.filter.split('=eq.')[1] : 'general';
-                        const listener = {
-                            channel: channelName,
-                            callback: callback
-                        };
-                        this._listeners.push(listener);
-                        messageListeners.push(listener);
+                    if (event === 'postgres_changes') {
+                        if (filter.table === 'messages') {
+                            const channelName = filter.filter ? filter.filter.split('=eq.')[1] : 'general';
+                            const listener = {
+                                channel: channelName,
+                                callback: callback
+                            };
+                            this._listeners.push(listener);
+                            messageListeners.push(listener);
+                        } else if (filter.table === 'channels') {
+                            const listener = {
+                                callback: callback
+                            };
+                            this._listeners.push(listener);
+                            channelListeners.push(listener);
+                        }
                     }
                     
                     return this;
@@ -393,6 +389,54 @@ const SupabaseUtils = {
             console.error('프로필 업데이트 실패:', error);
             throw error;
         }
+    },
+    
+    // 채널 관련 유틸리티
+    async getChannels() {
+        try {
+            const { data, error } = await supabase
+                .from('channels')
+                .select('*')
+                .order('created_at', { ascending: true });
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('채널 목록 로드 실패:', error);
+            return [];
+        }
+    },
+
+    async createChannel(channelData) {
+        try {
+            const { data, error } = await supabase
+                .from('channels')
+                .insert({
+                    name: channelData.name,
+                    description: channelData.description,
+                    icon: channelData.icon,
+                    color: channelData.color
+                });
+            
+            if (error) throw error;
+            return data[0];
+        } catch (error) {
+            console.error('채널 생성 실패:', error);
+            throw error;
+        }
+    },
+
+    subscribeToChannels(callback) {
+        const subscription = supabase
+            .channel('channels-subscription')
+            .on('postgres_changes', { 
+                event: '*', 
+                schema: 'public', 
+                table: 'channels' 
+            }, callback)
+            .subscribe();
+        
+        return subscription;
     },
     
     // 메시지 가져오기

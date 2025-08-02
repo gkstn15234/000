@@ -7,8 +7,13 @@ class DevConnectApp {
             codeSharing: false,
             videoMeeting: true,
             mentoring: true,
-            projectShowcase: true
+            projectShowcase: true,
+            dynamicChannels: true,
+            realTimeChat: true
         };
+        
+        this.channels = [];
+        this.channelSubscription = null;
         
         this.init();
     }
@@ -31,6 +36,8 @@ class DevConnectApp {
         this.initializeFeatures();
         this.setupSearchFunctionality();
         this.loadWelcomeContent();
+        this.loadChannels();
+        this.subscribeToChannelUpdates();
         
         console.log('DevConnect 애플리케이션이 준비되었습니다.');
     }
@@ -83,15 +90,54 @@ class DevConnectApp {
         }
 
         // 화상회의 모달 관련
-        const saveMeetingBtn = document.getElementById('saveMeetingBtn');
+        const createZoomMeetingBtn = document.getElementById('createZoomMeetingBtn');
         const closeMeetingModal = document.getElementById('closeMeetingModal');
+        const meetingType = document.getElementById('meetingType');
         
-        if (saveMeetingBtn) {
-            saveMeetingBtn.addEventListener('click', () => this.saveMeetingUrl());
+        if (createZoomMeetingBtn) {
+            createZoomMeetingBtn.addEventListener('click', () => this.createZoomMeeting());
         }
         
         if (closeMeetingModal) {
             closeMeetingModal.addEventListener('click', () => this.closeVideoCallModal());
+        }
+        
+        if (meetingType) {
+            meetingType.addEventListener('change', () => this.toggleScheduledOptions());
+        }
+        
+        // 멘토링 버튼
+        const mentoringBtn = document.getElementById('mentoringBtn');
+        const closeMentoringModal = document.getElementById('closeMentoringModal');
+        const submitQuestionBtn = document.getElementById('submitQuestionBtn');
+        
+        if (mentoringBtn) {
+            mentoringBtn.addEventListener('click', () => this.openMentoringModal());
+        }
+        
+        if (closeMentoringModal) {
+            closeMentoringModal.addEventListener('click', () => this.closeMentoringModal());
+        }
+        
+        if (submitQuestionBtn) {
+            submitQuestionBtn.addEventListener('click', () => this.submitQuestion());
+        }
+        
+        // 스토어 버튼
+        const storeBtn = document.getElementById('storeBtn');
+        const closeStoreModal = document.getElementById('closeStoreModal');
+        const sellCodeBtn = document.getElementById('sellCodeBtn');
+        
+        if (storeBtn) {
+            storeBtn.addEventListener('click', () => this.openStoreModal());
+        }
+        
+        if (closeStoreModal) {
+            closeStoreModal.addEventListener('click', () => this.closeStoreModal());
+        }
+        
+        if (sellCodeBtn) {
+            sellCodeBtn.addEventListener('click', () => this.sellCode());
         }
     }
 
@@ -226,7 +272,7 @@ class DevConnectApp {
 
 
     // 새 채널 생성
-    createNewChannel() {
+    async createNewChannel() {
         const input = document.getElementById('newChannelInput');
         const channelName = input.value.trim();
         
@@ -245,57 +291,130 @@ class DevConnectApp {
             return;
         }
 
-        // 채널 목록에 추가
-        this.addChannelToList(channelName);
-        
-        // 입력 필드 초기화
-        input.value = '';
-        
-        if (window.authManager) {
-            authManager.showToast(`'${channelName}' 채널이 생성되었습니다!`, 'success');
+        // 중복 채널 검사
+        if (this.channels.some(ch => ch.name === channelName)) {
+            if (window.authManager) {
+                authManager.showToast('이미 존재하는 채널명입니다.', 'warning');
+            }
+            return;
+        }
+
+        try {
+            // 데이터베이스에 채널 생성
+            const newChannel = await SupabaseUtils.createChannel({
+                name: channelName,
+                description: `${channelName} 채널에서 자유롭게 대화하세요!`,
+                icon: 'fas fa-hashtag',
+                color: 'text-primary'
+            });
+            
+            // 입력 필드 초기화
+            input.value = '';
+            
+            if (window.authManager) {
+                authManager.showToast(`'${channelName}' 채널이 생성되었습니다!`, 'success');
+            }
+            
+        } catch (error) {
+            console.error('채널 생성 실패:', error);
+            if (window.authManager) {
+                authManager.showToast('채널 생성에 실패했습니다.', 'error');
+            }
         }
     }
 
+    // 채널 목록 로드
+    async loadChannels() {
+        try {
+            this.channels = await SupabaseUtils.getChannels();
+            this.renderChannelList();
+        } catch (error) {
+            console.error('채널 로드 실패:', error);
+        }
+    }
+
+    // 채널 목록 렌더링
+    renderChannelList() {
+        const channelList = document.querySelector('.space-y-2');
+        if (!channelList) return;
+
+        // 기존 채널 버튼들 제거 (기본 채널 제외)
+        const existingButtons = channelList.querySelectorAll('.channel-btn:not(.channel-active)');
+        existingButtons.forEach(btn => btn.remove());
+
+        // 데이터베이스에서 가져온 채널들 추가
+        this.channels.forEach(channel => {
+            if (channel.id !== 'general') { // 일반 채널은 이미 HTML에 있음
+                this.addChannelToList(channel);
+            }
+        });
+    }
+
     // 채널 목록에 추가
-    addChannelToList(channelName) {
+    addChannelToList(channel) {
         const channelList = document.querySelector('.space-y-2');
         if (!channelList) return;
 
         const channelButton = document.createElement('button');
         channelButton.className = 'channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors';
-        channelButton.dataset.channel = channelName.toLowerCase().replace(/\s+/g, '-');
+        channelButton.dataset.channel = channel.id;
         
-        // 랜덤 아이콘 선택
-        const icons = ['fas fa-hashtag', 'fas fa-code', 'fas fa-comments', 'fas fa-lightbulb', 'fas fa-star'];
-        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+        const messageCount = this.getChannelMessageCount(channel.id);
         
         channelButton.innerHTML = `
-            <i class="${randomIcon} text-primary mr-2"></i>${channelName}
-            <span class="float-right text-sm text-gray-500">0</span>
+            <i class="${channel.icon} ${channel.color} mr-2"></i>${channel.name}
+            <span class="float-right text-sm text-gray-500">${messageCount}</span>
         `;
         
         // 채널 클릭 이벤트
         channelButton.addEventListener('click', () => {
-            this.switchChannel(channelName);
+            this.switchChannel(channel.id, channel.name);
         });
         
         channelList.appendChild(channelButton);
     }
 
+    // 채널 메시지 수 가져오기
+    getChannelMessageCount(channelId) {
+        // 실제 구현에서는 데이터베이스에서 가져옴
+        return Math.floor(Math.random() * 10);
+    }
+
+    // 채널 업데이트 구독
+    subscribeToChannelUpdates() {
+        this.channelSubscription = SupabaseUtils.subscribeToChannels((payload) => {
+            console.log('채널 업데이트:', payload);
+            
+            if (payload.eventType === 'INSERT') {
+                this.channels.push(payload.new);
+                this.addChannelToList(payload.new);
+            }
+            // 다른 이벤트 타입들도 처리 가능
+        });
+    }
+
     // 채널 전환
-    switchChannel(channelName) {
+    switchChannel(channelId, channelName) {
         const currentChannelElement = document.getElementById('currentChannel');
         if (currentChannelElement) {
-            currentChannelElement.textContent = channelName;
+            currentChannelElement.textContent = channelName || channelId;
         }
         
         // 모든 채널 버튼에서 active 클래스 제거
         document.querySelectorAll('.channel-btn').forEach(btn => {
-            btn.classList.remove('bg-primary', 'text-white');
+            btn.classList.remove('bg-primary', 'text-white', 'channel-active');
         });
         
         // 현재 채널 버튼에 active 클래스 추가
-        event.target.classList.add('bg-primary', 'text-white');
+        const targetButton = document.querySelector(`[data-channel="${channelId}"]`);
+        if (targetButton) {
+            targetButton.classList.add('bg-primary', 'text-white', 'channel-active');
+        }
+        
+        // 채팅 매니저에 채널 전환 알림
+        if (window.chatManager) {
+            chatManager.switchChannel(channelId);
+        }
     }
 
     // 화상회의 모달 열기
@@ -314,43 +433,182 @@ class DevConnectApp {
         }
     }
 
-    // 회의 URL 저장
-    saveMeetingUrl() {
-        const title = document.getElementById('meetingTitle').value;
-        const url = document.getElementById('meetingUrl').value;
+    // 예약 옵션 토글
+    toggleScheduledOptions() {
+        const meetingType = document.getElementById('meetingType').value;
+        const scheduledOptions = document.getElementById('scheduledOptions');
         
-        if (!url.trim()) {
-            if (window.authManager) {
-                authManager.showToast('회의 URL을 입력해주세요.', 'warning');
-            }
-            return;
+        if (meetingType === 'scheduled') {
+            scheduledOptions.classList.remove('hidden');
+        } else {
+            scheduledOptions.classList.add('hidden');
         }
+    }
 
-        // URL 유효성 검사
+    // Zoom 미팅 생성
+    async createZoomMeeting() {
+        const title = document.getElementById('meetingTitle').value || 'DevConnect 미팅';
+        const meetingType = document.getElementById('meetingType').value;
+        const waitingRoom = document.getElementById('waitingRoom').checked;
+        const recordMeeting = document.getElementById('recordMeeting').checked;
+        
         try {
-            new URL(url);
-        } catch {
+            // 실제 Zoom API 호출 대신 목업 데이터 사용
+            const mockMeetingData = {
+                id: Date.now(),
+                join_url: `https://zoom.us/j/${Math.floor(Math.random() * 1000000000)}`,
+                password: Math.random().toString(36).substring(2, 8),
+                topic: title,
+                type: meetingType === 'instant' ? 1 : 2,
+                settings: {
+                    waiting_room: waitingRoom,
+                    auto_recording: recordMeeting ? 'cloud' : 'none'
+                }
+            };
+            
+            // 채팅에 미팅 정보 공유
+            if (window.chatManager) {
+                const meetingMessage = `🎥 **${title}**\n\n🔗 미팅 링크: ${mockMeetingData.join_url}\n🔐 비밀번호: ${mockMeetingData.password}\n⏰ 유형: ${meetingType === 'instant' ? '즉시 미팅' : '예약 미팅'}\n\n지금 참여하세요!`;
+                chatManager.sendMessage(meetingMessage);
+            }
+            
+            // 모달 닫기
+            this.closeVideoCallModal();
+            
+            // 입력 필드 초기화
+            document.getElementById('meetingTitle').value = '';
+            
             if (window.authManager) {
-                authManager.showToast('유효한 URL을 입력해주세요.', 'warning');
+                authManager.showToast('Zoom 미팅이 생성되었습니다!', 'success');
+            }
+            
+            // 새 탭에서 미팅 열기
+            window.open(mockMeetingData.join_url, '_blank');
+            
+        } catch (error) {
+            console.error('Zoom 미팅 생성 실패:', error);
+            if (window.authManager) {
+                authManager.showToast('미팅 생성에 실패했습니다.', 'error');
+            }
+        }
+    }
+
+    // 멘토링 모달 열기
+    openMentoringModal() {
+        const modal = document.getElementById('mentoringModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    // 멘토링 모달 닫기
+    closeMentoringModal() {
+        const modal = document.getElementById('mentoringModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    // 질문 제출
+    async submitQuestion() {
+        const title = document.getElementById('questionTitle').value;
+        const techStack = document.getElementById('techStack').value;
+        const content = document.getElementById('questionContent').value;
+        
+        if (!title.trim() || !content.trim()) {
+            if (window.authManager) {
+                authManager.showToast('제목과 내용을 모두 입력해주세요.', 'warning');
             }
             return;
         }
+        
+        try {
+            // 채팅에 질문 올리기
+            if (window.chatManager) {
+                const questionMessage = `❓ **멘토링 질문**\n\n📝 **제목:** ${title}\n${techStack ? `🛠️ **기술:** ${techStack}\n` : ''}\n**내용:**\n${content}\n\n답변 부탁드립니다! 🙏`;
+                chatManager.sendMessage(questionMessage);
+            }
+            
+            // 모달 닫기
+            this.closeMentoringModal();
+            
+            // 입력 필드 초기화
+            document.getElementById('questionTitle').value = '';
+            document.getElementById('techStack').value = '';
+            document.getElementById('questionContent').value = '';
+            
+            if (window.authManager) {
+                authManager.showToast('질문이 올라갔습니다!', 'success');
+            }
+            
+        } catch (error) {
+            console.error('질문 제출 실패:', error);
+            if (window.authManager) {
+                authManager.showToast('질문 제출에 실패했습니다.', 'error');
+            }
+        }
+    }
 
-        // 채팅에 회의 링크 공유
-        if (window.chatManager) {
-            const meetingMessage = `🎥 **${title || '화상회의'}**\n\n회의 링크: ${url}\n\n지금 참여하세요!`;
-            chatManager.sendMessage(meetingMessage);
+    // 스토어 모달 열기
+    openStoreModal() {
+        const modal = document.getElementById('storeModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    // 스토어 모달 닫기
+    closeStoreModal() {
+        const modal = document.getElementById('storeModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    // 코드 판매
+    async sellCode() {
+        const repoUrl = document.getElementById('repoUrl').value;
+        const title = document.getElementById('codeTitle').value;
+        const price = document.getElementById('codePrice').value;
+        const description = document.getElementById('codeDescription').value;
+        
+        if (!repoUrl.trim() || !title.trim() || !price) {
+            if (window.authManager) {
+                authManager.showToast('모든 필드를 입력해주세요.', 'warning');
+            }
+            return;
         }
         
-        // 모달 닫기
-        this.closeVideoCallModal();
+        // GitHub URL 유효성 검사
+        if (!repoUrl.includes('github.com')) {
+            if (window.authManager) {
+                authManager.showToast('유효한 GitHub URL을 입력해주세요.', 'warning');
+            }
+            return;
+        }
         
-        // 입력 필드 초기화
-        document.getElementById('meetingTitle').value = '';
-        document.getElementById('meetingUrl').value = '';
-        
-        if (window.authManager) {
-            authManager.showToast('회의 링크가 공유되었습니다!', 'success');
+        try {
+            // 채팅에 코드 판매 공지
+            if (window.chatManager) {
+                const storeMessage = `💼 **코드 스토어 등록**\n\n💻 **제목:** ${title}\n💰 **가격:** ₩${Number(price).toLocaleString()}\n🔗 **GitHub:** ${repoUrl}\n\n**설명:**\n${description}\n\n관심 있으시면 DM 또는 댄글 남겨주세요! 🚀`;
+                chatManager.sendMessage(storeMessage);
+            }
+            
+            // 입력 필드 초기화
+            document.getElementById('repoUrl').value = '';
+            document.getElementById('codeTitle').value = '';
+            document.getElementById('codePrice').value = '';
+            document.getElementById('codeDescription').value = '';
+            
+            if (window.authManager) {
+                authManager.showToast('코드가 스토어에 등록되었습니다!', 'success');
+            }
+            
+        } catch (error) {
+            console.error('코드 등록 실패:', error);
+            if (window.authManager) {
+                authManager.showToast('코드 등록에 실패했습니다.', 'error');
+            }
         }
     }
 
