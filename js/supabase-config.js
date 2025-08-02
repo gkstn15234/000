@@ -23,38 +23,92 @@ try {
 // 목업 Supabase (개발/테스트용)
 function createMockSupabase() {
     const mockUsers = [
-        { id: '1', email: 'test@example.com', user_metadata: { name: '테스트 사용자' } }
+        { id: '1', email: 'admin@devconnect.com', user_metadata: { name: '관리자' } },
+        { id: '2', email: 'kim.dev@example.com', user_metadata: { name: '김개발' } },
+        { id: '3', email: 'park.junior@example.com', user_metadata: { name: '박초보' } }
     ];
     
-    const mockMessages = [
-        {
-            id: '1',
-            content: '안녕하세요! DevConnect에 오신 것을 환영합니다! 🎉',
-            user_id: '1',
-            channel: 'general',
-            created_at: new Date().toISOString(),
-            user: { name: '관리자', avatar_url: null }
-        },
-        {
-            id: '2',
-            content: '```javascript\nconsole.log("Hello, World!");\n```\n첫 번째 코드 공유입니다!',
-            user_id: '1',
-            channel: 'javascript',
-            created_at: new Date(Date.now() - 300000).toISOString(),
-            user: { name: '김개발', avatar_url: null }
-        },
-        {
-            id: '3',
-            content: 'React Hooks에 대해 질문이 있어요. useEffect 사용법을 알려주세요!',
-            user_id: '1',
-            channel: 'react',
-            created_at: new Date(Date.now() - 600000).toISOString(),
-            user: { name: '박초보', avatar_url: null }
-        }
-    ];
+    const mockMessages = {
+        general: [
+            {
+                id: '1',
+                content: '안녕하세요! DevConnect에 오신 것을 환영합니다! 🎉',
+                user_id: '1',
+                channel: 'general',
+                created_at: new Date(Date.now() - 3600000).toISOString(),
+                user: { name: '관리자', avatar_url: null }
+            },
+            {
+                id: '2',
+                content: '여기서 자유롭게 개발 관련 이야기를 나누세요!',
+                user_id: '1',
+                channel: 'general',
+                created_at: new Date(Date.now() - 3000000).toISOString(),
+                user: { name: '관리자', avatar_url: null }
+            }
+        ],
+        javascript: [
+            {
+                id: '3',
+                content: '```javascript\nconsole.log("Hello, World!");\nconst greeting = "안녕하세요!";\nconsole.log(greeting);\n```\n첫 번째 JavaScript 코드 공유입니다!',
+                user_id: '2',
+                channel: 'javascript',
+                created_at: new Date(Date.now() - 1800000).toISOString(),
+                user: { name: '김개발', avatar_url: null }
+            },
+            {
+                id: '4',
+                content: 'ES6의 화살표 함수에 대해 질문이 있어요. 언제 사용하는 게 좋을까요?',
+                user_id: '3',
+                channel: 'javascript',
+                created_at: new Date(Date.now() - 900000).toISOString(),
+                user: { name: '박초보', avatar_url: null }
+            }
+        ],
+        python: [
+            {
+                id: '5',
+                content: '```python\ndef hello_world():\n    print("안녕하세요, Python!")\n    return "DevConnect"\n\nresult = hello_world()\nprint(f"결과: {result}")\n```\nPython 기초 예제입니다!',
+                user_id: '2',
+                channel: 'python',
+                created_at: new Date(Date.now() - 2400000).toISOString(),
+                user: { name: '김개발', avatar_url: null }
+            }
+        ],
+        react: [
+            {
+                id: '6',
+                content: 'React Hooks에 대해 질문이 있어요. useEffect 사용법을 알려주세요!',
+                user_id: '3',
+                channel: 'react',
+                created_at: new Date(Date.now() - 1200000).toISOString(),
+                user: { name: '박초보', avatar_url: null }
+            },
+            {
+                id: '7',
+                content: '```jsx\nimport React, { useState, useEffect } from "react";\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n\n  useEffect(() => {\n    document.title = `카운트: ${count}`;\n  }, [count]);\n\n  return (\n    <button onClick={() => setCount(count + 1)}>\n      클릭 횟수: {count}\n    </button>\n  );\n}\n```\nuseEffect 사용 예제입니다!',
+                user_id: '2',
+                channel: 'react',
+                created_at: new Date(Date.now() - 600000).toISOString(),
+                user: { name: '김개발', avatar_url: null }
+            }
+        ],
+        nodejs: [],
+        ai: [
+            {
+                id: '8',
+                content: 'ChatGPT API를 활용한 프로젝트를 진행 중인데, rate limit 처리는 어떻게 하시나요?',
+                user_id: '3',
+                channel: 'ai',
+                created_at: new Date(Date.now() - 3600000).toISOString(),
+                user: { name: '박초보', avatar_url: null }
+            }
+        ]
+    };
     
     let currentUser = null;
     const authListeners = [];
+    const messageListeners = [];
     
     return {
         auth: {
@@ -131,12 +185,54 @@ function createMockSupabase() {
         },
         
         from: (table) => ({
-            select: async (columns = '*') => {
-                console.log(`Mock select from ${table}`);
-                if (table === 'messages') {
-                    return { data: mockMessages, error: null };
-                }
-                return { data: [], error: null };
+            select: function(columns = '*') {
+                const query = this;
+                return {
+                    eq: function(column, value) {
+                        query._filters = query._filters || {};
+                        query._filters[column] = value;
+                        return this;
+                    },
+                    order: function(column, options = {}) {
+                        query._order = { column, ...options };
+                        return this;
+                    },
+                    limit: function(count) {
+                        query._limit = count;
+                        return this;
+                    },
+                    then: function(resolve, reject) {
+                        console.log(`Mock select from ${table}:`, query._filters);
+                        
+                        if (table === 'messages') {
+                            let channelMessages = [];
+                            
+                            if (query._filters && query._filters.channel) {
+                                const channel = query._filters.channel;
+                                channelMessages = mockMessages[channel] || [];
+                            } else {
+                                // 모든 채널의 메시지 반환
+                                channelMessages = Object.values(mockMessages).flat();
+                            }
+                            
+                            if (query._order) {
+                                channelMessages.sort((a, b) => {
+                                    const aTime = new Date(a.created_at);
+                                    const bTime = new Date(b.created_at);
+                                    return query._order.ascending ? aTime - bTime : bTime - aTime;
+                                });
+                            }
+                            
+                            if (query._limit) {
+                                channelMessages = channelMessages.slice(0, query._limit);
+                            }
+                            
+                            return resolve({ data: channelMessages, error: null });
+                        }
+                        
+                        return resolve({ data: [], error: null });
+                    }
+                };
             },
             
             insert: async (data) => {
@@ -151,34 +247,68 @@ function createMockSupabase() {
                             avatar_url: null
                         } : { name: '익명', avatar_url: null }
                     };
-                    mockMessages.push(newMessage);
+                    
+                    const channel = data.channel || 'general';
+                    if (!mockMessages[channel]) {
+                        mockMessages[channel] = [];
+                    }
+                    mockMessages[channel].push(newMessage);
+                    
+                    // 실시간 리스너들에게 알림
+                    setTimeout(() => {
+                        messageListeners.forEach(listener => {
+                            if (listener.channel === channel) {
+                                listener.callback({
+                                    eventType: 'INSERT',
+                                    new: newMessage
+                                });
+                            }
+                        });
+                    }, 100);
+                    
                     return { data: [newMessage], error: null };
                 }
                 return { data: [data], error: null };
-            },
-            
-            eq: function(column, value) {
-                this._filters = this._filters || {};
-                this._filters[column] = value;
-                return this;
-            },
-            
-            order: function(column, options = {}) {
-                this._order = { column, ...options };
-                return this;
             }
         }),
         
-        channel: (name) => ({
-            on: (event, filter, callback) => {
-                console.log(`Mock channel subscription: ${name}, ${event}`);
-                return this;
-            },
-            subscribe: () => {
-                console.log('Mock channel subscribed');
-                return { unsubscribe: () => console.log('Mock channel unsubscribed') };
-            }
-        })
+        channel: (name) => {
+            const channelObj = {
+                _listeners: [],
+                on: function(event, filter, callback) {
+                    console.log(`Mock channel subscription: ${name}, ${event}`, filter);
+                    
+                    if (event === 'postgres_changes' && filter.table === 'messages') {
+                        const channelName = filter.filter ? filter.filter.split('=eq.')[1] : 'general';
+                        const listener = {
+                            channel: channelName,
+                            callback: callback
+                        };
+                        this._listeners.push(listener);
+                        messageListeners.push(listener);
+                    }
+                    
+                    return this;
+                },
+                subscribe: function() {
+                    console.log(`Mock channel subscribed: ${name}`);
+                    return { 
+                        unsubscribe: () => {
+                            console.log(`Mock channel unsubscribed: ${name}`);
+                            // 리스너 제거
+                            this._listeners.forEach(listener => {
+                                const index = messageListeners.indexOf(listener);
+                                if (index > -1) {
+                                    messageListeners.splice(index, 1);
+                                }
+                            });
+                            this._listeners = [];
+                        }
+                    };
+                }
+            };
+            return channelObj;
+        }
     };
 }
 
@@ -270,10 +400,7 @@ const SupabaseUtils = {
         try {
             const { data, error } = await supabase
                 .from('messages')
-                .select(`
-                    *,
-                    user:users(name, avatar_url)
-                `)
+                .select('*')
                 .eq('channel', channel)
                 .order('created_at', { ascending: true })
                 .limit(limit);
@@ -300,11 +427,7 @@ const SupabaseUtils = {
                     message_type: messageType,
                     code_language: codeLanguage,
                     user_id: user.id
-                })
-                .select(`
-                    *,
-                    user:users(name, avatar_url)
-                `);
+                });
             
             if (error) throw error;
             return data[0];

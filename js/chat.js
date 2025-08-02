@@ -25,13 +25,21 @@ class ChatManager {
         // 인증 상태 변화 감지
         authManager.addAuthListener((event, session) => {
             if (event === 'SIGNED_IN') {
-                this.loadMessages(this.currentChannel);
-                this.subscribeToChannel(this.currentChannel);
+                // 로그인 시 현재 채널의 메시지 로드
+                setTimeout(() => {
+                    this.loadMessages(this.currentChannel);
+                    this.subscribeToChannel(this.currentChannel);
+                }, 500);
             } else if (event === 'SIGNED_OUT') {
                 this.clearMessages();
                 this.unsubscribeFromAllChannels();
             }
         });
+        
+        // 페이지 로드 시 기본 메시지 표시 (로그인 상태와 관계없이)
+        setTimeout(() => {
+            this.loadMessages(this.currentChannel);
+        }, 1000);
     }
 
     // 이벤트 리스너 설정
@@ -78,8 +86,18 @@ class ChatManager {
 
     // 채널 UI 업데이트
     updateChannelUI(channel) {
+        // 채널 이름 매핑
+        const channelNames = {
+            'general': '일반',
+            'javascript': 'JavaScript',
+            'python': 'Python',
+            'react': 'React',
+            'nodejs': 'Node.js',
+            'ai': 'AI/ML'
+        };
+        
         // 현재 채널 표시 업데이트
-        document.getElementById('currentChannel').textContent = channel;
+        document.getElementById('currentChannel').textContent = channelNames[channel] || channel;
         
         // 채널 버튼 활성화 상태 업데이트
         document.querySelectorAll('.channel-btn').forEach(btn => {
@@ -144,14 +162,14 @@ class ChatManager {
                         ${messageContent}
                     </div>
                     <div class="mt-2 flex items-center space-x-2">
-                        <button class="emoji-reaction" data-emoji="👍" title="좋아요">
-                            👍 <span class="reaction-count">0</span>
+                        <button class="emoji-reaction" data-emoji="👍" data-message-id="${message.id}" title="좋아요">
+                            👍 <span class="reaction-count">${Math.floor(Math.random() * 5)}</span>
                         </button>
-                        <button class="emoji-reaction" data-emoji="❤️" title="하트">
-                            ❤️ <span class="reaction-count">0</span>
+                        <button class="emoji-reaction" data-emoji="❤️" data-message-id="${message.id}" title="하트">
+                            ❤️ <span class="reaction-count">${Math.floor(Math.random() * 3)}</span>
                         </button>
-                        <button class="emoji-reaction" data-emoji="😊" title="웃음">
-                            😊 <span class="reaction-count">0</span>
+                        <button class="emoji-reaction" data-emoji="😊" data-message-id="${message.id}" title="웃음">
+                            😊 <span class="reaction-count">${Math.floor(Math.random() * 2)}</span>
                         </button>
                         <button class="text-gray-400 hover:text-gray-600 text-sm ml-2" title="답글">
                             <i class="fas fa-reply"></i> 답글
@@ -162,6 +180,13 @@ class ChatManager {
         `;
 
         this.messageContainer.appendChild(messageElement);
+        
+        // 이모지 반응 이벤트 리스너 추가
+        messageElement.querySelectorAll('.emoji-reaction').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.handleEmojiReaction(e);
+            });
+        });
     }
 
     // 메시지 내용 처리 (마크다운, 코드 블록 등)
@@ -351,6 +376,37 @@ class ChatManager {
         if (this.messageContainer) {
             this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
         }
+    }
+
+    // 이모지 반응 처리
+    handleEmojiReaction(event) {
+        const button = event.target.closest('.emoji-reaction');
+        if (!button) return;
+        
+        const emoji = button.dataset.emoji;
+        const messageId = button.dataset.messageId;
+        const countSpan = button.querySelector('.reaction-count');
+        
+        // 현재 카운트 가져오기
+        let currentCount = parseInt(countSpan.textContent) || 0;
+        
+        // 버튼이 이미 활성화되어 있는지 확인
+        if (button.classList.contains('active')) {
+            // 반응 제거
+            currentCount = Math.max(0, currentCount - 1);
+            button.classList.remove('active');
+            authManager.showToast(`${emoji} 반응을 제거했습니다.`, 'info');
+        } else {
+            // 반응 추가
+            currentCount += 1;
+            button.classList.add('active');
+            authManager.showToast(`${emoji} 반응을 추가했습니다!`, 'success');
+        }
+        
+        // 카운트 업데이트
+        countSpan.textContent = currentCount;
+        
+        console.log(`이모지 반응: ${emoji} on message ${messageId}, count: ${currentCount}`);
     }
 
     // 메시지 초기화
