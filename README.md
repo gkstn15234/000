@@ -97,73 +97,17 @@ const SUPABASE_ANON_KEY = 'your-anon-key';
 
 ### 3. 데이터베이스 테이블 생성
 
-Supabase SQL 에디터에서 다음 스크립트 실행:
+Supabase SQL 에디터에서 `database-setup.sql` 파일의 내용을 실행하세요.
 
-```sql
--- 사용자 테이블
-CREATE TABLE users (
-    id UUID REFERENCES auth.users(id) PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    name TEXT,
-    avatar_url TEXT,
-    github_username TEXT,
-    bio TEXT,
-    skills TEXT[],
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+주요 테이블:
+- **user_profiles**: 사용자 프로필 정보
+- **channels**: 동적 채널 관리  
+- **messages**: 실시간 채팅 메시지
+- **mentoring_questions**: 멘토링 질문
+- **code_store**: GitHub 코드 마켓플레이스
+- **video_meetings**: 화상회의 정보
 
--- 메시지 테이블
-CREATE TABLE messages (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    content TEXT NOT NULL,
-    user_id UUID REFERENCES users(id),
-    channel TEXT DEFAULT 'general',
-    message_type TEXT DEFAULT 'normal',
-    code_language TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 채널 테이블
-CREATE TABLE channels (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    description TEXT,
-    is_private BOOLEAN DEFAULT FALSE,
-    created_by UUID REFERENCES users(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 프로젝트 테이블
-CREATE TABLE projects (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT,
-    github_url TEXT,
-    demo_url TEXT,
-    tech_stack TEXT[],
-    user_id UUID REFERENCES users(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS (Row Level Security) 활성화
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE channels ENABLE ROW LEVEL SECURITY;
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-
--- RLS 정책 설정
-CREATE POLICY "Public users are viewable by everyone." ON users FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own profile." ON users FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update own profile." ON users FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Messages are viewable by everyone." ON messages FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can insert messages." ON messages FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "Channels are viewable by everyone." ON channels FOR SELECT USING (true);
-CREATE POLICY "Projects are viewable by everyone." ON projects FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own projects." ON projects FOR INSERT WITH CHECK (auth.uid() = user_id);
-```
+모든 테이블에는 RLS(Row Level Security)가 활성화되어 보안이 강화됩니다.
 
 ### 4. 로컬 서버 실행
 

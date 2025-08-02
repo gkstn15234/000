@@ -13,122 +13,54 @@
     "categories": ["developer", "education", "productivity", "social"],
     "icons": [
         {
-            "src": "https://via.placeholder.com/72x72/3B82F6/FFFFFF?text=DC",
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><rect width='72' height='72' fill='%233B82F6'/><text x='36' y='44' text-anchor='middle' fill='white' font-family='Arial' font-size='32' font-weight='bold'>DC</text></svg>",
             "sizes": "72x72",
-            "type": "image/png",
+            "type": "image/svg+xml",
             "purpose": "any maskable"
         },
         {
-            "src": "https://via.placeholder.com/96x96/3B82F6/FFFFFF?text=DC",
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%233B82F6'/><text x='48' y='58' text-anchor='middle' fill='white' font-family='Arial' font-size='42' font-weight='bold'>DC</text></svg>",
             "sizes": "96x96",
-            "type": "image/png",
+            "type": "image/svg+xml",
             "purpose": "any maskable"
         },
         {
-            "src": "https://via.placeholder.com/128x128/3B82F6/FFFFFF?text=DC",
-            "sizes": "128x128",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "https://via.placeholder.com/144x144/3B82F6/FFFFFF?text=DC",
-            "sizes": "144x144",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "https://via.placeholder.com/152x152/3B82F6/FFFFFF?text=DC",
-            "sizes": "152x152",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "https://via.placeholder.com/192x192/3B82F6/FFFFFF?text=DC",
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%233B82F6'/><text x='96' y='115' text-anchor='middle' fill='white' font-family='Arial' font-size='84' font-weight='bold'>DC</text></svg>",
             "sizes": "192x192",
-            "type": "image/png",
+            "type": "image/svg+xml",
             "purpose": "any maskable"
         },
         {
-            "src": "https://via.placeholder.com/384x384/3B82F6/FFFFFF?text=DC",
-            "sizes": "384x384",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "https://via.placeholder.com/512x512/3B82F6/FFFFFF?text=DC",
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%233B82F6'/><text x='256' y='305' text-anchor='middle' fill='white' font-family='Arial' font-size='224' font-weight='bold'>DC</text></svg>",
             "sizes": "512x512",
-            "type": "image/png",
+            "type": "image/svg+xml",
             "purpose": "any maskable"
-        }
-    ],
-    "screenshots": [
-        {
-            "src": "https://via.placeholder.com/1280x720/3B82F6/FFFFFF?text=DevConnect+Desktop",
-            "sizes": "1280x720",
-            "type": "image/png",
-            "form_factor": "wide",
-            "label": "DevConnect 데스크톱 화면"
-        },
-        {
-            "src": "https://via.placeholder.com/375x812/3B82F6/FFFFFF?text=DevConnect+Mobile",
-            "sizes": "375x812",
-            "type": "image/png",
-            "form_factor": "narrow",
-            "label": "DevConnect 모바일 화면"
         }
     ],
     "shortcuts": [
         {
-            "name": "JavaScript 채널",
-            "short_name": "JavaScript",
-            "description": "JavaScript 개발자 채널로 바로 이동",
-            "url": "/?channel=javascript",
-            "icons": [
-                {
-                    "src": "https://via.placeholder.com/96x96/F7DF1E/000000?text=JS",
-                    "sizes": "96x96",
-                    "type": "image/png"
-                }
-            ]
+            "name": "일반 채널",
+            "short_name": "일반",
+            "description": "일반 채널로 바로 이동",
+            "url": "/?channel=general"
         },
         {
-            "name": "Python 채널",
-            "short_name": "Python",
-            "description": "Python 개발자 채널로 바로 이동",
-            "url": "/?channel=python",
-            "icons": [
-                {
-                    "src": "https://via.placeholder.com/96x96/3776AB/FFFFFF?text=PY",
-                    "sizes": "96x96",
-                    "type": "image/png"
-                }
-            ]
+            "name": "화상 회의",
+            "short_name": "회의",
+            "description": "Zoom 화상회의 시작",
+            "url": "/?action=video-call"
         },
         {
-            "name": "React 채널",
-            "short_name": "React",
-            "description": "React 개발자 채널로 바로 이동",
-            "url": "/?channel=react",
-            "icons": [
-                {
-                    "src": "https://via.placeholder.com/96x96/61DAFB/000000?text=⚛️",
-                    "sizes": "96x96",
-                    "type": "image/png"
-                }
-            ]
+            "name": "멘토링",
+            "short_name": "멘토링",
+            "description": "멘토링 질문하기",
+            "url": "/?action=mentoring"
         },
         {
-            "name": "코드 공유",
-            "short_name": "코드",
-            "description": "코드 공유 기능 바로 사용",
-            "url": "/?action=share-code",
-            "icons": [
-                {
-                    "src": "https://via.placeholder.com/96x96/10B981/FFFFFF?text=</>",
-                    "sizes": "96x96",
-                    "type": "image/png"
-                }
-            ]
+            "name": "코드 스토어",
+            "short_name": "스토어",
+            "description": "GitHub 코드 스토어",
+            "url": "/?action=store"
         }
     ],
     "related_applications": [],

@@ -8,16 +8,24 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // const SUPABASE_URL = 'http://localhost:54321';
 // const SUPABASE_ANON_KEY = 'your-local-anon-key';
 
+// 데이터베이스 모드 설정 (실제 배포시 false로 변경)
+const USE_MOCK_DATABASE = false;
+
 // Supabase 클라이언트 초기화
 let supabase;
 
-try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase 클라이언트가 성공적으로 초기화되었습니다.');
-} catch (error) {
-    console.error('Supabase 클라이언트 초기화 실패:', error);
-    // 임시로 목업 데이터 사용
+if (USE_MOCK_DATABASE) {
+    console.log('목업 데이터베이스 모드 사용 중...');
     supabase = createMockSupabase();
+} else {
+    try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase 클라이언트가 성공적으로 초기화되었습니다.');
+    } catch (error) {
+        console.error('Supabase 클라이언트 초기화 실패:', error);
+        console.log('목업 데이터베이스로 전환합니다...');
+        supabase = createMockSupabase();
+    }
 }
 
 // 목업 Supabase (개발/테스트용)
@@ -400,7 +408,7 @@ const SupabaseUtils = {
                 .order('created_at', { ascending: true });
             
             if (error) throw error;
-            return data;
+            return data || [];
         } catch (error) {
             console.error('채널 목록 로드 실패:', error);
             return [];
@@ -409,17 +417,25 @@ const SupabaseUtils = {
 
     async createChannel(channelData) {
         try {
+            // 채널 ID 생성 (이름을 기반으로)
+            const channelId = channelData.name.toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9가-힣-]/g, '');
+
             const { data, error } = await supabase
                 .from('channels')
                 .insert({
+                    id: channelId,
                     name: channelData.name,
                     description: channelData.description,
-                    icon: channelData.icon,
-                    color: channelData.color
-                });
+                    icon: channelData.icon || 'fas fa-hashtag',
+                    color: channelData.color || 'text-primary'
+                })
+                .select()
+                .single();
             
             if (error) throw error;
-            return data[0];
+            return data;
         } catch (error) {
             console.error('채널 생성 실패:', error);
             throw error;
@@ -433,7 +449,13 @@ const SupabaseUtils = {
                 event: '*', 
                 schema: 'public', 
                 table: 'channels' 
-            }, callback)
+            }, (payload) => {
+                callback({
+                    eventType: payload.eventType,
+                    new: payload.new,
+                    old: payload.old
+                });
+            })
             .subscribe();
         
         return subscription;
@@ -444,13 +466,27 @@ const SupabaseUtils = {
         try {
             const { data, error } = await supabase
                 .from('messages')
-                .select('*')
+                .select(`
+                    *,
+                    user_profiles:user_id (
+                        name,
+                        avatar_url
+                    )
+                `)
                 .eq('channel', channel)
                 .order('created_at', { ascending: true })
                 .limit(limit);
             
             if (error) throw error;
-            return data || [];
+            
+            // 메시지 형식을 기존 코드와 호환되도록 변경
+            return (data || []).map(msg => ({
+                ...msg,
+                user: {
+                    name: msg.user_profiles?.name || '익명',
+                    avatar_url: msg.user_profiles?.avatar_url || null
+                }
+            }));
         } catch (error) {
             console.error('메시지 가져오기 실패:', error);
             return [];
@@ -460,8 +496,8 @@ const SupabaseUtils = {
     // 메시지 전송
     async sendMessage(content, channel = 'general', messageType = 'normal', codeLanguage = null) {
         try {
-            const user = await this.getCurrentUser();
-            if (!user) throw new Error('로그인이 필요합니다.');
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) throw new Error('로그인이 필요합니다.');
             
             const { data, error } = await supabase
                 .from('messages')
@@ -471,10 +507,26 @@ const SupabaseUtils = {
                     message_type: messageType,
                     code_language: codeLanguage,
                     user_id: user.id
-                });
+                })
+                .select(`
+                    *,
+                    user_profiles:user_id (
+                        name,
+                        avatar_url
+                    )
+                `)
+                .single();
             
             if (error) throw error;
-            return data[0];
+            
+            // 메시지 형식을 기존 코드와 호환되도록 변경
+            return {
+                ...data,
+                user: {
+                    name: data.user_profiles?.name || user.email?.split('@')[0] || '익명',
+                    avatar_url: data.user_profiles?.avatar_url || null
+                }
+            };
         } catch (error) {
             console.error('메시지 전송 실패:', error);
             throw error;
@@ -492,7 +544,45 @@ const SupabaseUtils = {
                     table: 'messages',
                     filter: `channel=eq.${channel}`
                 }, 
-                callback
+                async (payload) => {
+                    // 새 메시지에 사용자 정보를 포함하여 콜백 호출
+                    try {
+                        const { data: messageWithUser } = await supabase
+                            .from('messages')
+                            .select(`
+                                *,
+                                user_profiles:user_id (
+                                    name,
+                                    avatar_url
+                                )
+                            `)
+                            .eq('id', payload.new.id)
+                            .single();
+                        
+                        const formattedMessage = {
+                            ...messageWithUser,
+                            user: {
+                                name: messageWithUser.user_profiles?.name || '익명',
+                                avatar_url: messageWithUser.user_profiles?.avatar_url || null
+                            }
+                        };
+                        
+                        callback({
+                            eventType: 'INSERT',
+                            new: formattedMessage
+                        });
+                    } catch (error) {
+                        console.error('메시지 사용자 정보 로드 실패:', error);
+                        // 사용자 정보 없이 메시지만 전달
+                        callback({
+                            eventType: 'INSERT',
+                            new: {
+                                ...payload.new,
+                                user: { name: '익명', avatar_url: null }
+                            }
+                        });
+                    }
+                }
             )
             .subscribe();
     }
