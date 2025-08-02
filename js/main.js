@@ -4,7 +4,7 @@ class DevConnectApp {
     constructor() {
         this.version = '1.0.0';
         this.features = {
-            codeSharing: true,
+            codeSharing: false,
             videoMeeting: true,
             mentoring: true,
             projectShowcase: true
@@ -60,22 +60,38 @@ class DevConnectApp {
 
     // 빠른 액션 버튼 설정
     setupQuickActionButtons() {
-        // 코드 공유 버튼
-        const codeShareBtn = document.querySelector('button:has(i.fa-code)');
-        if (codeShareBtn) {
-            codeShareBtn.addEventListener('click', () => this.openCodeShareModal());
-        }
-
         // 화상 회의 버튼
-        const videoMeetBtn = document.querySelector('button:has(i.fa-video)');
-        if (videoMeetBtn) {
-            videoMeetBtn.addEventListener('click', () => this.startVideoMeeting());
+        const videoCallBtn = document.getElementById('videoCallBtn');
+        if (videoCallBtn) {
+            videoCallBtn.addEventListener('click', () => this.openVideoCallModal());
         }
 
-        // 멘토링 버튼
-        const mentoringBtn = document.querySelector('button:has(i.fa-users)');
-        if (mentoringBtn) {
-            mentoringBtn.addEventListener('click', () => this.openMentoringModal());
+            // 새 채널 생성 버튼
+        const createChannelBtn = document.getElementById('createChannelBtn');
+        if (createChannelBtn) {
+            createChannelBtn.addEventListener('click', () => this.createNewChannel());
+        }
+
+        // 엔터키로 채널 생성
+        const newChannelInput = document.getElementById('newChannelInput');
+        if (newChannelInput) {
+            newChannelInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.createNewChannel();
+                }
+            });
+        }
+
+        // 화상회의 모달 관련
+        const saveMeetingBtn = document.getElementById('saveMeetingBtn');
+        const closeMeetingModal = document.getElementById('closeMeetingModal');
+        
+        if (saveMeetingBtn) {
+            saveMeetingBtn.addEventListener('click', () => this.saveMeetingUrl());
+        }
+        
+        if (closeMeetingModal) {
+            closeMeetingModal.addEventListener('click', () => this.closeVideoCallModal());
         }
     }
 
@@ -208,133 +224,134 @@ class DevConnectApp {
         // 검색 결과 UI 숨기기
     }
 
-    // 코드 공유 모달 열기
-    openCodeShareModal() {
-        if (!authManager.isAuthenticated()) {
-            authManager.showToast('로그인이 필요합니다.', 'warning');
-            return;
-        }
 
-        const modal = this.createCodeShareModal();
-        document.body.appendChild(modal);
-    }
-
-    // 코드 공유 모달 생성
-    createCodeShareModal() {
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        modal.innerHTML = `
-            <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold">코드 공유</h2>
-                    <button class="close-modal text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">제목</label>
-                        <input type="text" id="codeTitle" class="w-full px-3 py-2 border rounded-lg" placeholder="코드 제목을 입력하세요">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">언어</label>
-                        <select id="codeLanguage" class="w-full px-3 py-2 border rounded-lg">
-                            <option value="javascript">JavaScript</option>
-                            <option value="python">Python</option>
-                            <option value="java">Java</option>
-                            <option value="cpp">C++</option>
-                            <option value="html">HTML</option>
-                            <option value="css">CSS</option>
-                            <option value="sql">SQL</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">코드</label>
-                        <textarea id="codeContent" rows="15" class="w-full px-3 py-2 border rounded-lg font-mono text-sm" placeholder="코드를 입력하세요..."></textarea>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">설명</label>
-                        <textarea id="codeDescription" rows="3" class="w-full px-3 py-2 border rounded-lg" placeholder="코드에 대한 설명을 입력하세요..."></textarea>
-                    </div>
-                    
-                    <div class="flex space-x-3">
-                        <button id="shareCodeBtn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600">
-                            공유하기
-                        </button>
-                        <button class="close-modal px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                            취소
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // 이벤트 리스너 추가
-        modal.addEventListener('click', (e) => {
-            if (e.target.classList.contains('close-modal') || e.target === modal) {
-                modal.remove();
+    // 새 채널 생성
+    createNewChannel() {
+        const input = document.getElementById('newChannelInput');
+        const channelName = input.value.trim();
+        
+        if (!channelName) {
+            if (window.authManager) {
+                authManager.showToast('채널명을 입력해주세요.', 'warning');
             }
-        });
-
-        modal.querySelector('#shareCodeBtn').addEventListener('click', () => {
-            this.shareCode(modal);
-        });
-
-        return modal;
-    }
-
-    // 코드 공유 실행
-    async shareCode(modal) {
-        const title = modal.querySelector('#codeTitle').value;
-        const language = modal.querySelector('#codeLanguage').value;
-        const content = modal.querySelector('#codeContent').value;
-        const description = modal.querySelector('#codeDescription').value;
-
-        if (!content.trim()) {
-            authManager.showToast('코드를 입력해주세요.', 'warning');
             return;
         }
 
+        // 채널명 유효성 검사
+        if (!/^[a-zA-Z0-9가-힣\s-_]+$/.test(channelName)) {
+            if (window.authManager) {
+                authManager.showToast('유효하지 않은 채널명입니다.', 'warning');
+            }
+            return;
+        }
+
+        // 채널 목록에 추가
+        this.addChannelToList(channelName);
+        
+        // 입력 필드 초기화
+        input.value = '';
+        
+        if (window.authManager) {
+            authManager.showToast(`'${channelName}' 채널이 생성되었습니다!`, 'success');
+        }
+    }
+
+    // 채널 목록에 추가
+    addChannelToList(channelName) {
+        const channelList = document.querySelector('.space-y-2');
+        if (!channelList) return;
+
+        const channelButton = document.createElement('button');
+        channelButton.className = 'channel-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors';
+        channelButton.dataset.channel = channelName.toLowerCase().replace(/\s+/g, '-');
+        
+        // 랜덤 아이콘 선택
+        const icons = ['fas fa-hashtag', 'fas fa-code', 'fas fa-comments', 'fas fa-lightbulb', 'fas fa-star'];
+        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+        
+        channelButton.innerHTML = `
+            <i class="${randomIcon} text-primary mr-2"></i>${channelName}
+            <span class="float-right text-sm text-gray-500">0</span>
+        `;
+        
+        // 채널 클릭 이벤트
+        channelButton.addEventListener('click', () => {
+            this.switchChannel(channelName);
+        });
+        
+        channelList.appendChild(channelButton);
+    }
+
+    // 채널 전환
+    switchChannel(channelName) {
+        const currentChannelElement = document.getElementById('currentChannel');
+        if (currentChannelElement) {
+            currentChannelElement.textContent = channelName;
+        }
+        
+        // 모든 채널 버튼에서 active 클래스 제거
+        document.querySelectorAll('.channel-btn').forEach(btn => {
+            btn.classList.remove('bg-primary', 'text-white');
+        });
+        
+        // 현재 채널 버튼에 active 클래스 추가
+        event.target.classList.add('bg-primary', 'text-white');
+    }
+
+    // 화상회의 모달 열기
+    openVideoCallModal() {
+        const modal = document.getElementById('videoCallModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    // 화상회의 모달 닫기
+    closeVideoCallModal() {
+        const modal = document.getElementById('videoCallModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    // 회의 URL 저장
+    saveMeetingUrl() {
+        const title = document.getElementById('meetingTitle').value;
+        const url = document.getElementById('meetingUrl').value;
+        
+        if (!url.trim()) {
+            if (window.authManager) {
+                authManager.showToast('회의 URL을 입력해주세요.', 'warning');
+            }
+            return;
+        }
+
+        // URL 유효성 검사
         try {
-            const codeMessage = `**${title || '코드 공유'}**\n\n${description}\n\n\`\`\`${language}\n${content}\n\`\`\``;
-            await chatManager.sendMessage(codeMessage);
-            
-            modal.remove();
-            authManager.showToast('코드가 공유되었습니다!', 'success');
-        } catch (error) {
-            console.error('코드 공유 실패:', error);
-            authManager.showToast('코드 공유에 실패했습니다.', 'error');
-        }
-    }
-
-    // 화상 회의 시작
-    startVideoMeeting() {
-        if (!authManager.isAuthenticated()) {
-            authManager.showToast('로그인이 필요합니다.', 'warning');
+            new URL(url);
+        } catch {
+            if (window.authManager) {
+                authManager.showToast('유효한 URL을 입력해주세요.', 'warning');
+            }
             return;
         }
 
-        // Zoom 통합 또는 기본 WebRTC 구현
-        this.createZoomMeeting();
-    }
-
-    // Zoom 미팅 생성
-    createZoomMeeting() {
-        // 실제 구현에서는 Zoom API 사용
-        const meetingUrl = `https://zoom.us/j/${Date.now()}`;
+        // 채팅에 회의 링크 공유
+        if (window.chatManager) {
+            const meetingMessage = `🎥 **${title || '화상회의'}**\n\n회의 링크: ${url}\n\n지금 참여하세요!`;
+            chatManager.sendMessage(meetingMessage);
+        }
         
-        authManager.showToast('화상회의 링크가 생성되었습니다!', 'success');
+        // 모달 닫기
+        this.closeVideoCallModal();
         
-        // 채팅에 미팅 링크 공유
-        const meetingMessage = `🎥 **화상회의 시작**\n\n미팅 링크: ${meetingUrl}\n\n지금 참여하세요!`;
-        chatManager.sendMessage(meetingMessage);
+        // 입력 필드 초기화
+        document.getElementById('meetingTitle').value = '';
+        document.getElementById('meetingUrl').value = '';
         
-        // 새 탭에서 미팅 열기
-        window.open(meetingUrl, '_blank');
+        if (window.authManager) {
+            authManager.showToast('회의 링크가 공유되었습니다!', 'success');
+        }
     }
 
     // 멘토링 모달 열기
