@@ -1,0 +1,149 @@
+{
+    "name": "DevConnect - 개발자 커뮤니티 플랫폼",
+    "short_name": "DevConnect",
+    "description": "개발자들을 위한 실시간 소통, 코드 공유, 멘토링 플랫폼",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3B82F6",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "ko",
+    "dir": "ltr",
+    "categories": ["developer", "education", "productivity", "social"],
+    "icons": [
+        {
+            "src": "https://via.placeholder.com/72x72/3B82F6/FFFFFF?text=DC",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://via.placeholder.com/96x96/3B82F6/FFFFFF?text=DC",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://via.placeholder.com/128x128/3B82F6/FFFFFF?text=DC",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://via.placeholder.com/144x144/3B82F6/FFFFFF?text=DC",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://via.placeholder.com/152x152/3B82F6/FFFFFF?text=DC",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://via.placeholder.com/192x192/3B82F6/FFFFFF?text=DC",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://via.placeholder.com/384x384/3B82F6/FFFFFF?text=DC",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://via.placeholder.com/512x512/3B82F6/FFFFFF?text=DC",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "https://via.placeholder.com/1280x720/3B82F6/FFFFFF?text=DevConnect+Desktop",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "DevConnect 데스크톱 화면"
+        },
+        {
+            "src": "https://via.placeholder.com/375x812/3B82F6/FFFFFF?text=DevConnect+Mobile",
+            "sizes": "375x812",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "DevConnect 모바일 화면"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "JavaScript 채널",
+            "short_name": "JavaScript",
+            "description": "JavaScript 개발자 채널로 바로 이동",
+            "url": "/?channel=javascript",
+            "icons": [
+                {
+                    "src": "https://via.placeholder.com/96x96/F7DF1E/000000?text=JS",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Python 채널",
+            "short_name": "Python",
+            "description": "Python 개발자 채널로 바로 이동",
+            "url": "/?channel=python",
+            "icons": [
+                {
+                    "src": "https://via.placeholder.com/96x96/3776AB/FFFFFF?text=PY",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "React 채널",
+            "short_name": "React",
+            "description": "React 개발자 채널로 바로 이동",
+            "url": "/?channel=react",
+            "icons": [
+                {
+                    "src": "https://via.placeholder.com/96x96/61DAFB/000000?text=⚛️",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "코드 공유",
+            "short_name": "코드",
+            "description": "코드 공유 기능 바로 사용",
+            "url": "/?action=share-code",
+            "icons": [
+                {
+                    "src": "https://via.placeholder.com/96x96/10B981/FFFFFF?text=</>",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    "handle_links": "preferred",
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    },
+    "protocol_handlers": [
+        {
+            "protocol": "web+devconnect",
+            "url": "/?action=%s"
+        }
+    ]
+}

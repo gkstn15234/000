@@ -1,0 +1,371 @@
+/* DevConnect Custom Styles */
+
+/* 전체 레이아웃 */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 채팅 메시지 스타일 */
+.message-item {
+    transition: all 0.2s ease;
+}
+
+.message-item:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.message-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.message-timestamp {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* 코드 블록 스타일 */
+.code-block {
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px 0;
+    overflow-x: auto;
+    position: relative;
+}
+
+.code-block pre {
+    margin: 0;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.code-language {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #d4d4d4;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* 인라인 코드 스타일 */
+.inline-code {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+/* 채널 버튼 활성 상태 */
+.channel-btn.active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.channel-btn.active:hover {
+    background-color: #2563eb;
+}
+
+/* 온라인 상태 표시 */
+.online-indicator {
+    width: 12px;
+    height: 12px;
+    background-color: #10b981;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border: 2px solid white;
+}
+
+/* 메시지 입력창 애니메이션 */
+#messageInput:focus {
+    transform: scale(1.01);
+    transition: transform 0.2s ease;
+}
+
+/* 로딩 애니메이션 */
+.loading-dots {
+    display: inline-block;
+    width: 20px;
+    text-align: center;
+}
+
+.loading-dots::after {
+    content: '';
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+}
+
+/* 토스트 알림 스타일 */
+.toast {
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast.success {
+    background-color: #10b981;
+}
+
+.toast.error {
+    background-color: #ef4444;
+}
+
+.toast.warning {
+    background-color: #f59e0b;
+}
+
+.toast.info {
+    background-color: #3b82f6;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none;
+    }
+    
+    .mobile-full {
+        width: 100%;
+    }
+    
+    #chatMessages {
+        height: 300px;
+    }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+    .dark-mode {
+        background-color: #1f2937;
+        color: #f9fafb;
+    }
+    
+    .dark-mode .bg-white {
+        background-color: #374151;
+    }
+    
+    .dark-mode .border-gray-200 {
+        border-color: #4b5563;
+    }
+    
+    .dark-mode .text-gray-900 {
+        color: #f9fafb;
+    }
+    
+    .dark-mode .text-gray-700 {
+        color: #d1d5db;
+    }
+    
+    .dark-mode .text-gray-600 {
+        color: #9ca3af;
+    }
+}
+
+/* 이모지 반응 스타일 */
+.emoji-reaction {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    margin: 2px;
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.emoji-reaction:hover {
+    background-color: #e5e7eb;
+    transform: scale(1.05);
+}
+
+.emoji-reaction.active {
+    background-color: #dbeafe;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+}
+
+/* 메시지 타입별 스타일 */
+.message-type-system {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+}
+
+.message-type-announcement {
+    background-color: #dbeafe;
+    border-left: 4px solid #3b82f6;
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+}
+
+/* 사용자 멘션 스타일 */
+.user-mention {
+    background-color: #3b82f6;
+    color: white;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+/* 프로젝트 카드 스타일 */
+.project-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.project-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+}
+
+/* 태그 스타일 */
+.tech-tag {
+    display: inline-block;
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin: 2px;
+}
+
+.tech-tag.javascript {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.tech-tag.python {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.tech-tag.react {
+    background-color: #dcfdf7;
+    color: #065f46;
+}
+
+/* 입력 필드 포커스 효과 */
+.input-focus-effect:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    outline: none;
+}
+
+/* 버튼 호버 효과 */
+.btn-hover-effect {
+    transition: all 0.2s ease;
+}
+
+.btn-hover-effect:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 그라데이션 배경 */
+.gradient-bg {
+    background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+}
+
+/* 펄스 애니메이션 */
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* 활성 채널 표시 */
+.channel-active {
+    position: relative;
+}
+
+.channel-active::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background-color: #3b82f6;
+    border-radius: 2px;
+}
+
+/* 메시지 입력 영역 */
+.message-input-area {
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    padding: 16px;
+}
+
+/* 스크롤 구역 그림자 */
+.scroll-shadow {
+    box-shadow: inset 0 7px 9px -7px rgba(0, 0, 0, 0.4);
+}

@@ -1,0 +1,14 @@
+# Cloudflare Pages 리다이렉트 설정
+
+# SPA (Single Page Application) 설정 - 모든 경로를 index.html로 리다이렉트
+/*    /index.html   200
+
+# API 경로 (향후 사용)
+/api/*  https://your-project.supabase.co/rest/v1/:splat  200
+
+# 보안 헤더 설정
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
