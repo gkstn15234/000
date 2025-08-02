@@ -2,7 +2,7 @@
 
 class ChatManager {
     constructor() {
-        this.currentChannel = 'general';
+        this.currentChannel = null; // 동적으로 설정됨
         this.messages = {};
         this.subscriptions = {};
         this.messageContainer = null;
@@ -26,20 +26,17 @@ class ChatManager {
         authManager.addAuthListener((event, session) => {
             if (event === 'SIGNED_IN') {
                 // 로그인 시 현재 채널의 메시지 로드
-                setTimeout(() => {
-                    this.loadMessages(this.currentChannel);
-                    this.subscribeToChannel(this.currentChannel);
-                }, 500);
+                if (this.currentChannel) {
+                    setTimeout(() => {
+                        this.loadMessages(this.currentChannel);
+                        this.subscribeToChannel(this.currentChannel);
+                    }, 500);
+                }
             } else if (event === 'SIGNED_OUT') {
                 this.clearMessages();
                 this.unsubscribeFromAllChannels();
             }
         });
-        
-        // 페이지 로드 시 기본 메시지 표시 (로그인 상태와 관계없이)
-        setTimeout(() => {
-            this.loadMessages(this.currentChannel);
-        }, 1000);
     }
 
     // 이벤트 리스너 설정
@@ -269,17 +266,34 @@ class ChatManager {
 
     // 메시지 전송
     async sendMessage() {
+        console.log('sendMessage 함수 호출됨');
+        
         const content = this.messageInput.value.trim();
-        if (!content) return;
+        console.log('메시지 내용:', content);
+        console.log('현재 채널:', this.currentChannel);
+        
+        if (!content) {
+            console.log('빈 메시지, 전송 취소');
+            return;
+        }
 
         if (!authManager.isAuthenticated()) {
+            console.log('인증되지 않은 사용자');
             authManager.showToast('로그인이 필요합니다.', 'warning');
             return;
         }
 
+        if (!this.currentChannel) {
+            console.log('채널이 설정되지 않음');
+            authManager.showToast('채널을 선택해주세요.', 'warning');
+            return;
+        }
+
         try {
+            console.log('메시지 전송 시작...');
+            
             // 메시지 타입 감지
-            let messageType = 'normal';
+            let messageType = 'text';
             let codeLanguage = null;
 
             if (content.includes('```')) {
@@ -291,10 +305,14 @@ class ChatManager {
             }
 
             // 메시지 전송
-            await SupabaseUtils.sendMessage(content, this.currentChannel, messageType, codeLanguage);
+            const result = await SupabaseUtils.sendMessage(content, this.currentChannel, messageType, codeLanguage);
+            console.log('메시지 전송 결과:', result);
             
             // 입력창 초기화
             this.messageInput.value = '';
+            
+            // 성공 토스트
+            authManager.showToast('메시지가 전송되었습니다.', 'success');
             
         } catch (error) {
             console.error('메시지 전송 실패:', error);
@@ -429,13 +447,20 @@ class ChatManager {
 
 // DOM 로드 완료 후 ChatManager 초기화
 document.addEventListener('DOMContentLoaded', function() {
-    const chatManager = new ChatManager();
+    // 전역 객체로 설정
+    window.chatManager = new ChatManager();
     
     // 알림 권한 요청
-    chatManager.requestNotificationPermission();
-    
-    // 전역 객체로 설정
-    window.chatManager = chatManager;
+    window.chatManager.requestNotificationPermission();
     
     console.log('채팅 시스템이 초기화되었습니다.');
 });
+
+// 즉시 초기화 (백업)
+if (document.readyState === 'loading') {
+    // DOM이 로딩 중이면 DOMContentLoaded 대기
+} else {
+    // 이미 로드 완료되었으면 즉시 초기화
+    window.chatManager = new ChatManager();
+    console.log('채팅 시스템이 즉시 초기화되었습니다.');
+}
